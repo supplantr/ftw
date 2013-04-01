@@ -1,0 +1,183 @@
+#!/bin/bash
+
+_defaults() {
+    MODULES=(uvcvideo videodev)
+    config-offline() {
+        CPUFREQ_GOVERNOR=ondemand
+        NMI_WATCHDOG=0
+        BUS_CONTROL=auto
+        USB_AUTOSUSPEND_TIMEOUT=5
+        PCIE_ASPM_POLICY=powersave
+        LAPTOP_MODE=5
+        DIRTY_RATIO=90
+        DIRTY_BACKGROUND_RATIO=1
+        DIRTY_EXPIRE_CENTISECS=600
+        DIRTY_WRITEBACK_CENTISECS=6000
+        SCSI_HOST_POLICY=min_power
+        REMOUNT_OPTIONS=noatime
+        BLOCKDEV_READAHEAD=4096
+        HD_POWER_MANAGEMENT=1
+        HD_SPINDOWN_TIMEOUT=180
+        SND_INTEL_POWER_SAVE=1
+        SND_AC97_POWER_SAVE=1
+        WIRELESS_POWER_SAVE=on
+    }
+    config-online() {
+        CPUFREQ_GOVERNOR=ondemand
+        NMI_WATCHDOG=1
+        BUS_CONTROL=on
+        PCIE_ASPM_POLICY=default
+        LAPTOP_MODE=0
+        DIRTY_RATIO=30
+        DIRTY_BACKGROUND_RATIO=10
+        DIRTY_EXPIRE_CENTISECS=300
+        DIRTY_WRITEBACK_CENTISECS=3000
+        SCSI_HOST_POLICY=max_performance
+        REMOUNT_OPTIONS=relatime
+        BLOCKDEV_READAHEAD=256
+        HD_POWER_MANAGEMENT=254
+        HD_SPINDOWN_TIMEOUT=253
+        SND_INTEL_POWER_SAVE=0
+        SND_AC97_POWER_SAVE=0
+        WIRELESS_POWER_SAVE=off
+    }
+}
+
+_init() {
+    if [[ $EUID -ne 0 ]]; then
+        echo 'must be run with root privileges'
+        exit 1
+    fi
+
+    lock=/tmp/ftw.lock
+    [[ -f $lock ]] && exit
+    : > $lock
+    trap "rm -f $lock" EXIT
+
+    rc=/etc/ftw/ftwrc
+    [[ -f $rc ]] && source $rc || _defaults
+}
+
+_call_func() { declare -f $1 > /dev/null && $1; }
+
+_common() {
+    opt() { [[ -f $1 ]] && echo $2 | tee $1 &> /dev/null; }
+
+    if [[ $CPUFREQ_GOVERNOR ]]; then
+        modprobe cpufreq_$CPUFREQ_GOVERNOR &> /dev/null
+        for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+            opt $i $CPUFREQ_GOVERNOR
+        done
+    fi
+
+    if [[ $NMI_WATCHDOG ]]; then
+        opt /proc/sys/kernel/nmi_watchdog $NMI_WATCHDOG
+    fi
+
+    if [[ $BUS_CONTROL ]]; then
+        for i in /sys/bus/*/devices/*/power/control; do
+            opt $i $BUS_CONTROL
+        done
+    fi
+
+    if [[ $USB_AUTOSUSPEND_TIMEOUT ]]; then
+        for i in /sys/bus/usb/devices/*/power/autosuspend; do
+            opt $i $USB_AUTOSUSPEND_TIMEOUT
+        done
+    fi
+
+    if [[ $PCIE_ASPM_POLICY ]]; then
+        opt /sys/module/pcie_aspm/parameters/policy $PCIE_ASPM_POLICY
+    fi
+
+    if [[ $LAPTOP_MODE ]]; then
+        opt /proc/sys/vm/laptop_mode $LAPTOP_MODE
+    fi
+
+    if [[ $DIRTY_RATIO ]]; then
+        opt /proc/sys/vm/dirty_ratio $DIRTY_RATIO
+    fi
+
+    if [[ $DIRTY_BACKGROUND_RATIO ]]; then
+        opt /proc/sys/vm/dirty_background_ratio $DIRTY_BACKGROUND_RATIO
+    fi
+
+    if [[ $DIRTY_EXPIRE_CENTISECS ]]; then
+        opt /proc/sys/vm/dirty_expire_centisecs $DIRTY_EXPIRE_CENTISECS
+    fi
+
+    if [[ $DIRTY_WRITEBACK_CENTISECS ]]; then
+        opt /proc/sys/vm/dirty_writeback_centisecs $DIRTY_WRITEBACK_CENTISECS
+    fi
+
+    if [[ $SCSI_HOST_POLICY ]]; then
+        for i in /sys/class/scsi_host/host*/link_power_management_policy; do
+            opt $i $SCSI_HOST_POLICY
+        done
+    fi
+
+    if [[ $REMOUNT_OPTIONS ]]; then
+        p=${PARTITIONS:-/dev/sd*}
+        for i in $(awk "/^${p//\//\\/}/ {print \$1}" /etc/mtab); do
+            mount -o remount,$REMOUNT_OPTIONS $i
+        done
+    fi
+
+    for i in ${DEVICES:-/dev/sd?}; do
+        [[ $BLOCKDEV_READAHEAD ]] && blockdev --setra $BLOCKDEV_READAHEAD $i
+        [[ $HD_POWER_MANAGEMENT ]] && hdparm -q -B $HD_POWER_MANAGEMENT $i
+        [[ $HD_SPINDOWN_TIMEOUT ]] && hdparm -q -S $HD_SPINDOWN_TIMEOUT $i
+    done
+
+    if [[ $SND_INTEL_POWER_SAVE ]]; then
+        dir=/sys/module/snd_hda_intel/parameters
+        [[ $SND_INTEL_POWER_SAVE -eq 1 ]] && yn=Y || yn=N
+        opt $dir/power_save_controller $yn
+        opt $dir/power_save $SND_INTEL_POWER_SAVE
+    fi
+
+    if [[ $SND_AC97_POWER_SAVE ]]; then
+        dir=/sys/module/snd_ac97_codec/parameters
+        opt $dir/power_save $SND_AC97_POWER_SAVE
+    fi
+
+    if [[ $WIRELESS_POWER_SAVE ]]; then
+        for i in $(iw dev | grep Interface | cut -d ' ' -f 2); do
+            iw dev $i set power_save $WIRELESS_POWER_SAVE
+        done
+    fi
+}
+
+case $1 in
+    offline)
+        _init
+        config-offline
+        _common
+
+        if [[ $MODULES ]]; then
+            for i in $MODULES; do
+                modprobe -r $i &> /dev/null
+            done
+        fi
+
+        _call_func custom-offline
+        exit 0
+        ;;
+    online)
+        _init
+        config-online
+        _common
+
+        if [[ $MODULES ]]; then
+            for i in $MODULES; do
+                modprobe $i &> /dev/null
+            done
+        fi
+
+        _call_func custom-online
+        exit 0
+        ;;
+    *)
+        echo 'usage: ftw [offline|online]'
+        exit 1
+esac

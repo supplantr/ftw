@@ -1,0 +1,107 @@
+#!/bin/bash
+
+# Comment out options to disable them.
+
+# Array of modules to be removed when offline and inserted when online.
+MODULES=(uvcvideo videodev)
+
+# Device partitions affected by REMOUNT_OPTIONS.
+PARTITIONS=/dev/sd*
+
+# Devices affected by BLOCKDEV_READAHEAD, HD_POWER_MANAGEMENT,
+# and HD_SPINDOWN_TIMEOUT.
+DEVICES=/dev/sd?
+
+config-offline() {
+    # CPU power scheme governor.
+    CPUFREQ_GOVERNOR=ondemand
+
+    # Execute periodic NMI interrupts to monitor CPU lock ups?
+    NMI_WATCHDOG=0
+
+    # Control everything in /sys/bus/*/devices/*.
+    # on = device should be resumed and autosuspend is not allowed
+    # auto = device is allowed to autosuspend and autoresume
+    BUS_CONTROL=auto
+
+    # How long to wait before suspending USB devices.
+    USB_AUTOSUSPEND_TIMEOUT=5
+
+    # PCI Express Active State Power Management.
+    # Will probably require pcie_aspm=force kernel boot parameter.
+    PCIE_ASPM_POLICY=powersave
+
+    # Attempt to maximize the amount of time disks spend in
+    # a low power state by submitting all future pending disk IO when
+    # performing an IO operation?
+    LAPTOP_MODE=5
+
+    # Maximum percentage of memory dirty pages can occupy before
+    # processes are forced to write dirty buffers themselves.
+    DIRTY_RATIO=90
+
+    # Maximum percentage of memory dirty pages can occupy before
+    # pdflush begins to write them.
+    DIRTY_BACKGROUND_RATIO=1
+
+    # How long data can be in the page cache before it expires,
+    # signifying it must be written at the next opportunity.
+    DIRTY_EXPIRE_CENTISECS=600
+
+    # How often pdflush wakes up to write data to disk.
+    DIRTY_WRITEBACK_CENTISECS=6000
+
+    # Policy for SCSI host adapters.
+    SCSI_HOST_POLICY=min_power
+
+    # Comma-separated list (option1,option2,etc) of mount options
+    # to be applied when remounting devices.
+    REMOUNT_OPTIONS=noatime
+
+    # Block device readahead in kilobytes.
+    BLOCKDEV_READAHEAD=4096
+
+    # Hard drive Advanced Power Management.
+    # See hdparm(8) (-B flag section) for more information.
+    HD_POWER_MANAGEMENT=1
+
+    # How long to wait after disk activity stops before turning off
+    # hard drive's spindle motor.
+    # See hdparm(8) (-S flag section) for more information.
+    HD_SPINDOWN_TIMEOUT=180
+
+    # Enable Intel HDA audio chipset power saving?
+    SND_INTEL_POWER_SAVE=1
+
+    # Enable AC97 audio chipset power saving?
+    SND_AC97_POWER_SAVE=1
+
+    # Enable wireless adapter power saving?
+    WIRELESS_POWER_SAVE=on
+}
+
+#custom-offline() {
+#}
+
+config-online() {
+    CPUFREQ_GOVERNOR=ondemand
+    NMI_WATCHDOG=1
+    BUS_CONTROL=on
+    PCIE_ASPM_POLICY=default
+    LAPTOP_MODE=0
+    DIRTY_RATIO=30
+    DIRTY_BACKGROUND_RATIO=10
+    DIRTY_EXPIRE_CENTISECS=300
+    DIRTY_WRITEBACK_CENTISECS=3000
+    SCSI_HOST_POLICY=max_performance
+    REMOUNT_OPTIONS=relatime
+    BLOCKDEV_READAHEAD=256
+    HD_POWER_MANAGEMENT=254
+    HD_SPINDOWN_TIMEOUT=253
+    SND_INTEL_POWER_SAVE=0
+    SND_AC97_POWER_SAVE=0
+    WIRELESS_POWER_SAVE=off
+}
+
+#custom-online() {
+#}
