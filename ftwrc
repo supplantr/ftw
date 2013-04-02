@@ -68,7 +68,7 @@ config-offline() {
     # How long to wait after disk activity stops before turning off
     # hard drive's spindle motor.
     # See hdparm(8) (-S flag section) for more information.
-    HD_SPINDOWN_TIMEOUT=180
+    HD_SPINDOWN_TIMEOUT=24
 
     # Enable Intel HDA audio chipset power saving?
     SND_INTEL_POWER_SAVE=1
@@ -96,8 +96,8 @@ config-online() {
     SCSI_HOST_POLICY=max_performance
     REMOUNT_OPTIONS=relatime
     BLOCKDEV_READAHEAD=256
-    HD_POWER_MANAGEMENT=254
-    HD_SPINDOWN_TIMEOUT=253
+    HD_POWER_MANAGEMENT=127
+    HD_SPINDOWN_TIMEOUT=120
     SND_INTEL_POWER_SAVE=0
     SND_AC97_POWER_SAVE=0
     WIRELESS_POWER_SAVE=off
