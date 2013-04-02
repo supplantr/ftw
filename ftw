@@ -151,7 +151,7 @@ _common() {
 case $1 in
     offline)
         _init
-        config-offline
+        _call_func config-offline
         _common
 
         if [[ $MODULES ]]; then
@@ -165,7 +165,7 @@ case $1 in
         ;;
     online)
         _init
-        config-online
+        _call_func config-online
         _common
 
         if [[ $MODULES ]]; then
