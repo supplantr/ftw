@@ -78,6 +78,10 @@ config-bat() {
 
     # Enable wireless adapter power saving?
     WIRELESS_POWER_SAVE=on
+
+    # Dim backlight to save power? For max value (min is 0), check
+    # /sys/class/backlight/acpi_video*/max_brightness.
+    BACKLIGHT_BRIGHTNESS=10
 }
 
 config-adp() {
@@ -99,6 +103,7 @@ config-adp() {
     SND_INTEL_POWER_SAVE=0
     SND_AC97_POWER_SAVE=0
     WIRELESS_POWER_SAVE=off
+    BACKLIGHT_BRIGHTNESS=15
 }
 
 #custom-bat() {

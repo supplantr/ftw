@@ -20,6 +20,7 @@ _defaults() {
         SND_INTEL_POWER_SAVE=0
         SND_AC97_POWER_SAVE=0
         WIRELESS_POWER_SAVE=off
+        BACKLIGHT_BRIGHTNESS=15
     }
     config-bat() {
         CPUFREQ_GOVERNOR=ondemand
@@ -40,6 +41,7 @@ _defaults() {
         SND_INTEL_POWER_SAVE=1
         SND_AC97_POWER_SAVE=1
         WIRELESS_POWER_SAVE=on
+        BACKLIGHT_BRIGHTNESS=10
     }
 }
 
@@ -144,6 +146,12 @@ _common() {
     if [[ $WIRELESS_POWER_SAVE ]]; then
         for i in $(iw dev | grep Interface | cut -d ' ' -f 2); do
             iw dev $i set power_save $WIRELESS_POWER_SAVE
+        done
+    fi
+
+    if [[ $BACKLIGHT_BRIGHTNESS ]]; then
+        for i in /sys/class/backlight/acpi_video*/brightness; do
+            opt $i $BACKLIGHT_BRIGHTNESS
         done
     fi
 }
