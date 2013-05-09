@@ -54,7 +54,7 @@ _init() {
     : > $lock
     trap "rm -f $lock" EXIT
 
-    rc=/etc/ftw/ftwrc
+    rc=/etc/conf.d/ftw
     [[ -f $rc ]] && source $rc || _defaults
 }
 
