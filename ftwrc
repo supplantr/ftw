@@ -12,7 +12,7 @@ PARTITIONS=/dev/sd*
 # and HD_SPINDOWN_TIMEOUT.
 DEVICES=/dev/sd?
 
-config-offline() {
+config-bat() {
     # CPU power scheme governor.
     CPUFREQ_GOVERNOR=ondemand
 
@@ -80,10 +80,7 @@ config-offline() {
     WIRELESS_POWER_SAVE=on
 }
 
-#custom-offline() {
-#}
-
-config-online() {
+config-adp() {
     CPUFREQ_GOVERNOR=ondemand
     NMI_WATCHDOG=1
     BUS_CONTROL=on
@@ -103,5 +100,8 @@ config-online() {
     WIRELESS_POWER_SAVE=off
 }
 
-#custom-online() {
+#custom-bat() {
+#}
+
+#custom-adp() {
 #}

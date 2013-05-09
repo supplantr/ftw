@@ -1,4 +1,4 @@
-SUBSYSTEM=="power_supply", ATTR{online}=="0", RUN+="/usr/bin/ftw offline"
-SUBSYSTEM=="power_supply", ATTR{online}=="1", RUN+="/usr/bin/ftw online"
-SUBSYSTEM=="block", ENV{POWER_SUPPLY_ONLINE}=="0", ENV{UDISKS_DISABLE_POLLING}="1"
+SUBSYSTEM=="power_supply", ATTR{online}=="1", RUN+="/usr/bin/ftw adp"
+SUBSYSTEM=="power_supply", ATTR{online}=="0", RUN+="/usr/bin/ftw bat"
 SUBSYSTEM=="block", ENV{POWER_SUPPLY_ONLINE}=="1", ENV{UDISKS_DISABLE_POLLING}="0"
+SUBSYSTEM=="block", ENV{POWER_SUPPLY_ONLINE}=="0", ENV{UDISKS_DISABLE_POLLING}="1"
