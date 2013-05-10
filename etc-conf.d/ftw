@@ -2,6 +2,10 @@
 
 # Comment out options to disable them.
 
+# File to which the state (adp or bat) will be written after the
+# respective custom function (see below) is called.
+STATE_FILE=/tmp/ftw.state
+
 # Array of modules to be removed when offline and inserted when online.
 MODULES=(uvcvideo videodev)
 

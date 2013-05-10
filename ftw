@@ -1,6 +1,7 @@
 #!/bin/bash
 
 _defaults() {
+    STATE_FILE=/tmp/ftw.state
     MODULES=(uvcvideo videodev)
     config-adp() {
         CPUFREQ_GOVERNOR=ondemand
@@ -51,12 +52,12 @@ _init() {
         exit 1
     fi
 
-    lock=/tmp/ftw.lock
+    local lock=/tmp/ftw.lock
     [[ -f $lock ]] && exit
     : > $lock
     trap "rm -f $lock" EXIT
 
-    rc=/etc/conf.d/ftw
+    local rc=/etc/conf.d/ftw
     [[ -f $rc ]] && source $rc || _defaults
 }
 
@@ -156,6 +157,8 @@ _common() {
     fi
 }
 
+_state() { [[ $STATE_FILE ]] && echo $1 > $STATE_FILE; }
+
 case $1 in
     adp)
         _init
@@ -169,6 +172,8 @@ case $1 in
         fi
 
         _call_func custom-adp
+        _state adp
+
         exit 0
         ;;
     bat)
@@ -183,6 +188,8 @@ case $1 in
         fi
 
         _call_func custom-bat
+        _state bat
+
         exit 0
         ;;
     *)
