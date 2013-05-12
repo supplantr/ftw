@@ -9,92 +9,128 @@
 
 ## configuration
 
-The config file is located at __/etc/conf.d/ftw__.
+The config file is located at `/etc/conf.d/ftw`.
 
 ### universal options
 
-<dl>
-  <dt>STATE_FILE</dt>
-  <dd>File to which the state (adp or bat) will be written after the respective custom function (see below) is called.</dd>
+**STATE_FILE**
 
-  <dt>MODULES</dt>
-  <dd>Array of modules to be removed when offline and inserted when online.</dd>
+ * File to which the state (`adp` or `bat`) will be written after the
+   respective custom function (see below) is called.
 
-  <dt>PARTITIONS</dt>
-  <dd>Device partitions affected by REMOUNT_OPTIONS.</dd>
+**MODULES**
 
-  <dt>DEVICES</dt>
-  <dd>Devices affected by BLOCKDEV_READAHEAD, HD_POWER_MANAGEMENT, and HD_SPINDOWN_TIMEOUT.</dd>
-</dl>
+ * Array of modules to be removed when offline and inserted when online.
+
+**PARTITIONS**
+
+ * Device partitions affected by `REMOUNT_OPTIONS`.
+
+**DEVICES**
+
+ * Devices affected by `BLOCKDEV_READAHEAD`, `HD_POWER_MANAGEMENT`, and
+   `HD_SPINDOWN_TIMEOUT`.
 
 ### state-dependent options
 
-<dl>
-  <dt>CPUFREQ_GOVERNOR</dt>
-  <dd>CPU power scheme governor.</dd>
+**CPUFREQ_GOVERNOR**
 
-  <dt>NMI_WATCHDOG</dt>
-  <dd>Execute periodic NMI interrupts to monitor CPU lock ups?</dd>
+ * CPU power scheme governor.
 
-  <dt>BUS_CONTROL</dt>
-  <dd>Control everything in /sys/bus/*/devices/*. on means device should be resumed and autosuspend is not allowed. auto means device is allowed to autosuspend and autoresume</dd>
+**NMI_WATCHDOG**
 
-  <dt>USB_AUTOSUSPEND_TIMEOUT</dt>
-  <dd>How long to wait before suspending USB devices.</dd>
+ * Execute periodic NMI interrupts to monitor CPU lock ups?
 
-  <dt>PCIE_ASPM_POLICY</dt>
-  <dd>PCI Express Active State Power Management. Will probably require pcie_aspm=force kernel boot parameter.</dd>
+**BUS_CONTROL**
 
-  <dt>LAPTOP_MODE</dt>
-  <dd>Attempt to maximize the amount of time disks spend in a low power state by submitting all future pending disk IO when performing an IO operation?</dd>
+ * Control everything in `/sys/bus/*/devices/*`.
+ * `on` means device should be resumed and autosuspend is not allowed.
+ * `auto` means device is allowed to autosuspend and autoresume.
 
-  <dt>DIRTY_RATIO</dt>
-  <dd>Maximum percentage of memory dirty pages can occupy before processes are forced to write dirty buffers themselves.</dd>
+**USB_AUTOSUSPEND_TIMEOUT**
 
-  <dt>DIRTY_BACKGROUND_RATIO</dt>
-  <dd>Maximum percentage of memory dirty pages can occupy before pdflush begins to write them.</dd>
+ * How long to wait before suspending USB devices.
 
-  <dt>DIRTY_EXPIRE_CENTISECS</dt>
-  <dd>How long data can be in the page cache before it expires, signifying it must be written at the next opportunity.</dd>
+**PCIE_ASPM_POLICY**
 
-  <dt>DIRTY_WRITEBACK_CENTISECS</dt>
-  <dd>How often pdflush wakes up to write data to disk.</dd>
+ * PCI Express Active State Power Management.
+ * Will probably require `pcie_aspm=force` kernel boot parameter.
 
-  <dt>SCSI_HOST_POLICY</dt>
-  <dd>Policy for SCSI host adapters.</dd>
+**LAPTOP_MODE**
 
-  <dt>REMOUNT_OPTIONS</dt>
-  <dd>Comma-separated list (option1,option2,etc) of mount options to be applied when remounting devices.</dd>
+ * Attempt to maximize the amount of time disks spend in a low power state by
+   submitting all future pending disk IO when performing an IO operation?
 
-  <dt>BLOCKDEV_READAHEAD</dt>
-  <dd>Block device readahead in kilobytes.</dd>
+**DIRTY_RATIO**
 
-  <dt>HD_POWER_MANAGEMENT</dt>
-  <dd>Hard drive Advanced Power Management. See hdparm(8) (-B flag section) for more information.</dd>
+ * Maximum percentage of memory dirty pages can occupy before processes are
+   forced to write dirty buffers themselves.
 
-  <dt>HD_SPINDOWN_TIMEOUT</dt>
-  <dd>How long to wait after disk activity stops before turning off hard drive's spindle motor. See hdparm(8) (-S flag section) for more information.</dd>
+**DIRTY_BACKGROUND_RATIO**
 
-  <dt>SND_INTEL_POWER_SAVE</dt>
-  <dd>Enable Intel HDA audio chipset power saving?</dd>
+ * Maximum percentage of memory dirty pages can occupy before pdflush begins
+   to write them.
 
-  <dt>SND_AC97_POWER_SAVE</dt>
-  <dd>Enable AC97 audio chipset power saving?</dd>
+**DIRTY_EXPIRE_CENTISECS**
 
-  <dt>WIRELESS_POWER_SAVE</dt>
-  <dd>Enable wireless adapter power saving?</dd>
+ * How long data can be in the page cache before it expires, signifying it
+   must be written at the next opportunity.
 
-  <dt>BACKLIGHT_BRIGHTNESS</dt>
-  <dd>Dim backlight to save power? For max value (min is 0), check /sys/class/backlight/acpi_video*/max_brightness.</dd>
-</dl>
+**DIRTY_WRITEBACK_CENTISECS**
+
+ * How often pdflush wakes up to write data to disk.
+
+**SCSI_HOST_POLICY**
+
+ * Policy for SCSI host adapters.
+
+**REMOUNT_OPTIONS**
+
+ * Comma-separated list (`option1,option2,etc`) of mount options to be applied
+   when remounting devices.
+
+**BLOCKDEV_READAHEAD**
+
+ * Block device readahead in kilobytes.
+
+**HD_POWER_MANAGEMENT**
+
+ * Hard drive Advanced Power Management.
+ * See `hdparm(8)` (-B flag section) for more information.
+
+**HD_SPINDOWN_TIMEOUT**
+
+ * How long to wait after disk activity stops before turning off hard drive's
+   spindle motor.
+ * See `hdparm(8)` (-S flag section) for more information.
+
+**SND_INTEL_POWER_SAVE**
+
+ * Enable Intel HDA audio chipset power saving?
+
+**SND_AC97_POWER_SAVE**
+
+ * Enable AC97 audio chipset power saving?
+
+**WIRELESS_POWER_SAVE**
+
+ * Enable wireless adapter power saving?
+
+**BACKLIGHT_BRIGHTNESS**
+
+ * Dim backlight to save power?
+ * For max value (min is `0`), check
+   `/sys/class/backlight/acpi_video*/max_brightness`.
 
 ### custom functions
 
-The __custom-adp__ or __custom-bat__ function is called upon a change in state, before the state file is updated.
+The `custom-adp` or `custom-bat` function is called upon a change in state,
+before the state file is updated.
 
 #### examples
 
-Disable Wake-on-LAN on battery with [ethtool](https://www.kernel.org/pub/software/network/ethtool/):
+Disable Wake-on-LAN on battery with
+[ethtool](https://www.kernel.org/pub/software/network/ethtool/):
 
     custom-bat() {
         ethtool -s eth0 wol d
@@ -104,7 +140,8 @@ Disable Wake-on-LAN on battery with [ethtool](https://www.kernel.org/pub/softwar
         ethtool -s eth0 wol g
     }
 
-Manage backlight brightness per state using [relight](http://xyne.archlinux.ca/projects/relight/):
+Manage backlight brightness per state using
+[relight](http://xyne.archlinux.ca/projects/relight/):
 
     custom-bat() {
         if [[ -f $STATE_FILE && $(< $STATE_FILE) == 'adp' ]]; then
