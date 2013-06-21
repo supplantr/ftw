@@ -53,7 +53,7 @@ _init() {
     fi
 
     local lock=/tmp/ftw.lock
-    [[ -f $lock ]] && exit
+    [[ -f $lock ]] && exit 2
     : > $lock
     trap "rm -f $lock" EXIT
 
@@ -64,7 +64,7 @@ _init() {
 _call_func() { declare -f $1 > /dev/null && $1; }
 
 _common() {
-    opt() { [[ -f $1 ]] && echo $2 | tee $1 &> /dev/null; }
+    opt() { [[ -f $1 ]] && echo $2 > $1 &> /dev/null; }
 
     if [[ $CPUFREQ_GOVERNOR ]]; then
         modprobe cpufreq_$CPUFREQ_GOVERNOR &> /dev/null
@@ -120,7 +120,7 @@ _common() {
     fi
 
     if [[ $REMOUNT_OPTIONS ]]; then
-        p=${PARTITIONS:-/dev/sd*}
+        local p=${PARTITIONS:-/dev/sd*}
         for i in $(awk "/^${p//\//\\/}/ {print \$1}" /etc/mtab); do
             mount -o remount,$REMOUNT_OPTIONS $i
         done
@@ -133,14 +133,14 @@ _common() {
     done
 
     if [[ $SND_INTEL_POWER_SAVE ]]; then
-        dir=/sys/module/snd_hda_intel/parameters
+        local dir=/sys/module/snd_hda_intel/parameters yn
         [[ $SND_INTEL_POWER_SAVE -eq 1 ]] && yn=Y || yn=N
         opt $dir/power_save_controller $yn
         opt $dir/power_save $SND_INTEL_POWER_SAVE
     fi
 
     if [[ $SND_AC97_POWER_SAVE ]]; then
-        dir=/sys/module/snd_ac97_codec/parameters
+        local dir=/sys/module/snd_ac97_codec/parameters
         opt $dir/power_save $SND_AC97_POWER_SAVE
     fi
 
@@ -174,7 +174,7 @@ case $1 in
         _call_func custom-adp
         _state adp
 
-        exit 0
+        exit
         ;;
     bat)
         _init
@@ -190,7 +190,7 @@ case $1 in
         _call_func custom-bat
         _state bat
 
-        exit 0
+        exit
         ;;
     *)
         echo 'usage: ftw [adp|bat]'
