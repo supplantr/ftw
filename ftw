@@ -1,9 +1,9 @@
 #!/bin/bash
 
 _defaults() {
-    STATE_FILE=/tmp/ftw.state
+    PROFILE_FILE=/tmp/ftw.profile
     MODULES=(uvcvideo videodev)
-    config-adp() {
+    adp() {
         CPUFREQ_GOVERNOR=ondemand
         NMI_WATCHDOG=1
         BUS_CONTROL=on
@@ -22,8 +22,13 @@ _defaults() {
         SND_AC97_POWER_SAVE=0
         WIRELESS_POWER_SAVE=off
         BACKLIGHT_BRIGHTNESS=15
+        if [[ $MODULES ]]; then
+            for i in $MODULES; do
+                modprobe $i &> /dev/null
+            done
+        fi
     }
-    config-bat() {
+    bat() {
         CPUFREQ_GOVERNOR=ondemand
         NMI_WATCHDOG=0
         BUS_CONTROL=auto
@@ -43,25 +48,13 @@ _defaults() {
         SND_AC97_POWER_SAVE=1
         WIRELESS_POWER_SAVE=on
         BACKLIGHT_BRIGHTNESS=10
+        if [[ $MODULES ]]; then
+            for i in $MODULES; do
+                modprobe -r $i &> /dev/null
+            done
+        fi
     }
 }
-
-_init() {
-    if [[ $EUID -ne 0 ]]; then
-        echo 'must be run with root privileges'
-        exit 1
-    fi
-
-    local lock=/tmp/ftw.lock
-    [[ -f $lock ]] && exit 2
-    : > $lock
-    trap "rm -f $lock" EXIT
-
-    local rc=/etc/conf.d/ftw
-    [[ -f $rc ]] && source $rc || _defaults
-}
-
-_call_func() { declare -f $1 > /dev/null && $1; }
 
 _common() {
     opt() { [[ -f $1 ]] && echo $2 > $1 &> /dev/null; }
@@ -157,42 +150,30 @@ _common() {
     fi
 }
 
-_state() { [[ $STATE_FILE ]] && echo $1 > $STATE_FILE; }
+profile=$1
+if [[ $profile ]]; then
+    config=/etc/conf.d/ftw
+    [[ -f $config ]] && source $config || _defaults
 
-case $1 in
-    adp)
-        _init
-        _call_func config-adp
-        _common
-
-        if [[ $MODULES ]]; then
-            for i in $MODULES; do
-                modprobe $i &> /dev/null
-            done
+    if declare -f $profile > /dev/null; then
+        if [[ $EUID -ne 0 ]]; then
+            echo 'requires root privileges'
+            exit 1
         fi
 
-        _call_func custom-adp
-        _state adp
+        lock=/tmp/ftw.lock
+        [[ -f $lock ]] && exit 2
+        : > $lock
+        trap "rm -f $lock" EXIT
 
-        exit
-        ;;
-    bat)
-        _init
-        _call_func config-bat
+        $profile
         _common
-
-        if [[ $MODULES ]]; then
-            for i in $MODULES; do
-                modprobe -r $i &> /dev/null
-            done
-        fi
-
-        _call_func custom-bat
-        _state bat
-
-        exit
-        ;;
-    *)
-        echo 'usage: ftw [adp|bat]'
+        [[ $PROFILE_FILE ]] && echo $profile > $PROFILE_FILE
+    else
+        echo "profile '$profile' does not exist in $config"
         exit 1
-esac
+    fi
+else
+    echo 'usage: ftw <profile>'
+    exit 1
+fi

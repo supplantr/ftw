@@ -2,9 +2,9 @@
 
 # Comment out options to disable them.
 
-# File to which the state (adp or bat) will be written after the
-# respective custom function (see below) is called.
-STATE_FILE=/tmp/ftw.state
+# File to which the current profile name will be written after the profile is
+# called.
+PROFILE_FILE=/tmp/ftw.profile
 
 # Array of modules to be removed when offline and inserted when online.
 MODULES=(uvcvideo videodev)
@@ -16,7 +16,7 @@ PARTITIONS=/dev/sd*
 # and HD_SPINDOWN_TIMEOUT.
 DEVICES=/dev/sd?
 
-config-bat() {
+bat() {
     # CPU power scheme governor.
     CPUFREQ_GOVERNOR=ondemand
 
@@ -35,21 +35,20 @@ config-bat() {
     # Will probably require pcie_aspm=force kernel boot parameter.
     PCIE_ASPM_POLICY=powersave
 
-    # Attempt to maximize the amount of time disks spend in
-    # a low power state by submitting all future pending disk IO when
-    # performing an IO operation?
+    # Attempt to maximize the amount of time disks spend in a low power state
+    # by submitting all future pending disk IO when performing an IO operaiton?
     LAPTOP_MODE=5
 
-    # Maximum percentage of memory dirty pages can occupy before
-    # processes are forced to write dirty buffers themselves.
+    # Maximum percentage of memory dirty pages can occupy before processes are
+    # forced to write dirty buffers themselves.
     DIRTY_RATIO=90
 
-    # Maximum percentage of memory dirty pages can occupy before
-    # pdflush begins to write them.
+    # Maximum percentage of memory dirty pages can occupy before pdflush begins
+    # to write them.
     DIRTY_BACKGROUND_RATIO=1
 
-    # How long data can be in the page cache before it expires,
-    # signifying it must be written at the next opportunity.
+    # How long data can be in the page cache before it expires, signifying it
+    # must be written at the next opportunity.
     DIRTY_EXPIRE_CENTISECS=600
 
     # How often pdflush wakes up to write data to disk.
@@ -58,8 +57,8 @@ config-bat() {
     # Policy for SCSI host adapters.
     SCSI_HOST_POLICY=min_power
 
-    # Comma-separated list (option1,option2,etc) of mount options
-    # to be applied when remounting devices.
+    # Comma-separated list (option1,option2,etc) of mount options to be applied
+    # when remounting devices.
     REMOUNT_OPTIONS=noatime
 
     # Block device readahead in kilobytes.
@@ -69,8 +68,8 @@ config-bat() {
     # See hdparm(8) (-B flag section) for more information.
     HD_POWER_MANAGEMENT=1
 
-    # How long to wait after disk activity stops before turning off
-    # hard drive's spindle motor.
+    # How long to wait after disk activity stops before turning off hard
+    # drive's spindle motor.
     # See hdparm(8) (-S flag section) for more information.
     HD_SPINDOWN_TIMEOUT=24
 
@@ -86,9 +85,17 @@ config-bat() {
     # Dim backlight to save power? For max value (min is 0), check
     # /sys/class/backlight/acpi_video*/max_brightness.
     BACKLIGHT_BRIGHTNESS=10
+
+    # Add custom commands to be executed when profile is called.
+
+    if [[ $MODULES ]]; then
+        for i in $MODULES; do
+            modprobe -r $i &> /dev/null
+        done
+    fi
 }
 
-config-adp() {
+adp() {
     CPUFREQ_GOVERNOR=ondemand
     NMI_WATCHDOG=1
     BUS_CONTROL=on
@@ -108,10 +115,10 @@ config-adp() {
     SND_AC97_POWER_SAVE=0
     WIRELESS_POWER_SAVE=off
     BACKLIGHT_BRIGHTNESS=15
+
+    if [[ $MODULES ]]; then
+        for i in $MODULES; do
+            modprobe $i &> /dev/null
+        done
+    fi
 }
-
-#custom-bat() {
-#}
-
-#custom-adp() {
-#}

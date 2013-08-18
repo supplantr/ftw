@@ -13,10 +13,10 @@ The config file is located at `/etc/conf.d/ftw`.
 
 ### universal options
 
-**STATE_FILE**
+**PROFILE_FILE**
 
- * File to which the state (`adp` or `bat`) will be written after the
-   respective custom function (see below) is called.
+ * File to which the current profile name will be written after the profile is
+   called.
 
 **MODULES**
 
@@ -68,13 +68,13 @@ The config file is located at `/etc/conf.d/ftw`.
 
 **DIRTY_BACKGROUND_RATIO**
 
- * Maximum percentage of memory dirty pages can occupy before pdflush begins
-   to write them.
+ * Maximum percentage of memory dirty pages can occupy before pdflush begins to
+   write them.
 
 **DIRTY_EXPIRE_CENTISECS**
 
- * How long data can be in the page cache before it expires, signifying it
-   must be written at the next opportunity.
+ * How long data can be in the page cache before it expires, signifying it must
+   be written at the next opportunity.
 
 **DIRTY_WRITEBACK_CENTISECS**
 
@@ -122,36 +122,40 @@ The config file is located at `/etc/conf.d/ftw`.
  * For max value (min is `0`), check
    `/sys/class/backlight/acpi_video*/max_brightness`.
 
-### custom functions
+### custom profiles
 
-The `custom-adp` or `custom-bat` function is called upon a change in state,
-before the state file is updated.
+Custom profiles added to the config file can be called with `ftw profile`.
+
+### custom commands
+
+Custom commands added to profile definitions will be executed when the profile
+is called.
 
 #### examples
 
 Disable Wake-on-LAN on battery with
 [ethtool](https://www.kernel.org/pub/software/network/ethtool/):
 
-    custom-bat() {
+    bat() {
         ethtool -s eth0 wol d
     }
 
-    custom-adp() {
+    adp() {
         ethtool -s eth0 wol g
     }
 
-Manage backlight brightness per state using
+Manage backlight brightness per profile using
 [relight](http://xyne.archlinux.ca/projects/relight/):
 
-    custom-bat() {
-        if [[ -f $STATE_FILE && $(< $STATE_FILE) == 'adp' ]]; then
+    bat() {
+        if [[ -f $PROFILE_FILE && $(< $PROFILE_FILE) == 'adp' ]]; then
             relight save adp
             relight restore bat
         fi
     }
 
-    custom-adp() {
-        if [[ -f $STATE_FILE && $(< $STATE_FILE) == 'bat' ]]; then
+    adp() {
+        if [[ -f $PROFILE_FILE && $(< $PROFILE_FILE) == 'bat' ]]; then
             relight save bat
             relight restore adp
         fi
