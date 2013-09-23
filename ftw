@@ -57,7 +57,7 @@ _defaults() {
 }
 
 _common() {
-    opt() { [[ -f $1 ]] && echo $2 > $1 &> /dev/null; }
+    opt() { [[ -f $1 ]] && echo $2 > $1 2> /dev/null; }
 
     if [[ $CPUFREQ_GOVERNOR ]]; then
         modprobe cpufreq_$CPUFREQ_GOVERNOR &> /dev/null
